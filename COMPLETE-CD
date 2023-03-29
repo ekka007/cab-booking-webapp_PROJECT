@@ -55,6 +55,22 @@ pipeline {
                 sh 'git push https://ekka007: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@github.com/ekka007/cab-booking-webapp_PROJECT.git deployment'
                 }
             }
-        }  
+           stage('Backup') {
+      steps {
+        sh 'sudo service jenkins stop' // Stop Jenkins service before backup
+        sh 'tar -zcvf jenkins_backup.tar.gz /var/lib/jenkins' // Create backup archive
+        withCredentials([[
+          credentialsId: 'aws-credentials', // ID of AWS IAM user credentials in Jenkins
+          accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+          secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+        ]]) {
+          sh 'aws s3 cp jenkins_backup.tar.gz s3://your-bucket-name/jenkins_backup.tar.gz' // Upload backup to S3
+        }
+        sh 'sudo service jenkins start' // Start Jenkins service after backup
+      }
+    }
+  }
+	    }
+	}
     }
 }   
